@@ -98,10 +98,33 @@ export class Sender {
       await this.sendTo(ctx.chat.id, screen);
       return;
     }
-    await ctx.editMessageText(screen.plain, {
-      parse_mode: "HTML",
-      ...(screen.kb ? { reply_markup: screen.kb } : {}),
-    });
+    try {
+      await ctx.editMessageText(screen.plain, {
+        parse_mode: "HTML",
+        ...(screen.kb ? { reply_markup: screen.kb } : {}),
+      });
+    } catch (err) {
+      // Ignore Telegram's "message is not modified" error on redundant clicks
+      const msg = String((err as Error)?.message || "");
+      if (!msg.includes("message is not modified")) {
+        throw err;
+      }
+    }
+  }
+
+  /** In-place edit helper for smooth text transitions. */
+  async editScreen(ctx: Context, screen: Screen): Promise<void> {
+    if (!ctx.chat) throw new Error("cannot edit without a chat");
+    try {
+      await ctx.editMessageText(screen.plain, {
+        parse_mode: "HTML",
+        ...(screen.kb ? { reply_markup: screen.kb } : {}),
+      });
+    } catch (err) {
+      const msg = String((err as Error)?.message || "");
+      if (msg.includes("message is not modified")) return;
+      await this.sendScreen(ctx, screen);
+    }
   }
 }
 
