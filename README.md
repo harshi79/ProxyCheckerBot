@@ -46,6 +46,8 @@ npm run dev
 
 The bot uses long polling, so no public webhook URL is required. Private chats are accepted; group updates are ignored.
 
+A tiny health HTTP server also binds on `PORT` (default `8080`) at `/`, `/health`, and `/healthz` so container platforms can probe readiness. Without `BOT_TOKEN`, only the health server starts.
+
 ## Docker
 
 ```bash
@@ -69,7 +71,8 @@ All settings are optional except `BOT_TOKEN`:
 
 | Variable | Default | Purpose |
 |---|---:|---|
-| `BOT_TOKEN` | — | Token from @BotFather |
+| `BOT_TOKEN` | — | Token from @BotFather (required for Telegram polling) |
+| `PORT` / `HEALTH_PORT` | `8080` | Health-check HTTP listen port |
 | `API_BASE_URL` | `https://api.telegram.org` | Bot API root, useful for a local Bot API server |
 | `DB_FILE` | `data/bot.db` | SQLite path |
 | `MAX_TARGET_URLS` | `5` | Stored target URL limit |

@@ -25,4 +25,7 @@ RUN mkdir -p /app/data && chown -R node:node /app
 USER node
 VOLUME ["/app/data"]
 
+ENV PORT=8080
+EXPOSE 8080
+
 CMD ["node", "dist/index.js"]

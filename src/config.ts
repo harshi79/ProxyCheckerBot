@@ -51,6 +51,12 @@ export interface BotConfig {
 
   /** SQLite file. */
   dbFile: string;
+
+  /**
+   * HTTP health-check listen port. Platforms that require a bound TCP port
+   * (and local smoke tests) use this; the Telegram bot still long-polls.
+   */
+  port: number;
 }
 
 export const config: BotConfig = {
@@ -74,6 +80,9 @@ export const config: BotConfig = {
   totalTimeoutMs: 12_000,
 
   dbFile: envStr("DB_FILE", path.join("data", "bot.db")),
+
+  // Prefer platform PORT; fall back to HEALTH_PORT, then 8080.
+  port: envInt("PORT", envInt("HEALTH_PORT", 8080)),
 };
 
 export const isTestMode = process.env.NODE_ENV === "test" || process.env.VITEST === "true";
