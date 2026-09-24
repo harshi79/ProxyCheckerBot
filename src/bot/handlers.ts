@@ -50,9 +50,16 @@ import {
   setBio,
   startJob,
   upsertUser,
+  isAdmin,
 } from "../store/db.js";
 import { downloadFile } from "../util/files.js";
 import { stylize, groupNum } from "../util/stylize.js";
+import { getStateData } from "./state.js";
+import {
+  executeBroadcast,
+  handleAdminUserDetail,
+  handleAdminDirectMessage,
+} from "./admin.js";
 
 export interface Deps {
   bot: Bot;
@@ -75,7 +82,9 @@ function img(name: string) {
 /* ─────────────────────────── screens ─────────────────────────── */
 
 export async function showWelcome(ctx: Context, deps: Deps): Promise<void> {
-  await deps.sender.sendScreen(ctx, welcomeScreen(img("welcome.jpg"), mainMenuKb()));
+  const from = user(ctx);
+  const isAdm = isAdmin(from.id);
+  await deps.sender.sendScreen(ctx, welcomeScreen(img("welcome.jpg"), mainMenuKb(isAdm)));
 }
 
 export async function handleDeveloper(ctx: Context, deps: Deps): Promise<void> {
@@ -356,6 +365,22 @@ export async function handleIncomingText(ctx: Context, deps: Deps): Promise<void
   if (state === "awaiting_set_urls") return await consumeSetUrls(ctx, deps);
   if (state === "awaiting_remove") return await consumeRemove(ctx, deps);
 
+  if (state === "awaiting_broadcast") {
+    setState(from.id, "idle");
+    return await executeBroadcast(ctx, deps, text);
+  }
+  if (state === "awaiting_user_lookup") {
+    setState(from.id, "idle");
+    return await handleAdminUserDetail(ctx, deps, text.trim());
+  }
+  if (state === "awaiting_dm_text") {
+    const data = getStateData(from.id);
+    setState(from.id, "idle");
+    if (data?.targetUserId) {
+      return await handleAdminDirectMessage(ctx, deps, data.targetUserId, text);
+    }
+  }
+
   if (looksLikeProxyList(text)) {
     if (jobStore.blockingJob(from.id)) {
       await ctx.reply(`⏳ ${stylize("a check is already running — wait for it to finish")}`);
@@ -540,10 +565,12 @@ export function handleStoppedGeneration(deps: Deps, chatId: string, draftId: num
 /* ─────────────────────────── back ─────────────────────────── */
 
 export async function handleBack(ctx: Context, deps: Deps): Promise<void> {
-  setState(user(ctx).id, "idle");
-  const screen = welcomeScreen(img("welcome.jpg"), mainMenuKb());
+  const from = user(ctx);
+  setState(from.id, "idle");
+  const isAdm = isAdmin(from.id);
+  const screen = welcomeScreen(img("welcome.jpg"), mainMenuKb(isAdm));
   if (ctx.callbackQuery) {
-    await deps.sender.morph(ctx, screen, { id: ctx.callbackQuery.id, from: user(ctx) });
+    await deps.sender.morph(ctx, screen, { id: ctx.callbackQuery.id, from });
   } else {
     await deps.sender.sendScreen(ctx, screen);
   }

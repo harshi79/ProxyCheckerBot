@@ -26,6 +26,11 @@ export interface BotConfig {
   /** Developer profile link. */
   developerUrl: string;
 
+  /** Primary bot owner / super-admin Telegram ID. */
+  ownerId: number;
+  /** Optional secondary admin Telegram IDs from env. */
+  adminIds: number[];
+
   /** Max target URLs a user can store. */
   maxTargetUrls: number;
   /** Max incoming proxy-list file size in MB (hard API cap is 20). */
@@ -64,6 +69,12 @@ export const config: BotConfig = {
   apiBaseUrl: envStr("API_BASE_URL", "https://api.telegram.org"),
   botName: "Yori Proxy Checker",
   developerUrl: "https://t.me/WhoEvenYori",
+
+  ownerId: envInt("OWNER_ID", 7728424218),
+  adminIds: (process.env.ADMIN_IDS || "")
+    .split(",")
+    .map((s) => Number.parseInt(s.trim(), 10))
+    .filter((n) => Number.isFinite(n) && n > 0),
 
   maxTargetUrls: envInt("MAX_TARGET_URLS", 5),
   maxFileMb: envInt("MAX_FILE_MB", 20),

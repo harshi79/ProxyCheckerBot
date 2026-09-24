@@ -6,7 +6,7 @@ The bot's visual language is intentionally restrained: user-approved matte-black
 
 ## What it does
 
-- `/start` opens a rich welcome card with separate Developer, Set URL, and Profile actions.
+- `/start` opens a rich welcome card with separate Developer, Set URL, and Profile actions (and an Admin Console button for owners/admins).
 - Developer links to `https://t.me/WhoEvenYori`.
 - Set URL stores up to **five** public `http`/`https` URLs, one per line.
 - Manage lets the user remove one URL, send `0` to clear all, or download the complete stored list as `urls.txt`.
@@ -17,6 +17,30 @@ The bot's visual language is intentionally restrained: user-approved matte-black
 - Streams a single smooth per-URL progress loadbar with a rich draft where available, and falls back to one edited message on older Bot API servers.
 - Sends one target-hostname `.txt` file plus `ALL_HITS.txt`. Empty target files are not sent, and no dead proxies are included.
 - Shows a profile card with Telegram name, username, id, human/bot type, bio, and lifetime statistics.
+
+## Admin & Developer Controls
+
+Configured with super-admin/owner ID `7728424218` (customizable via `OWNER_ID` and `ADMIN_IDS`), providing full rich administration capabilities:
+
+- **Interactive Admin Dashboard (`/admin` or `/panel`)**:
+  - Live system telemetry: total registered users, active users in last 24h, banned count, checks run, proxies tested, active running jobs, queue length.
+  - In-place smooth navigation and refresh via inline buttons.
+- **User Directory & Inspection**:
+  - `/users [page]` — Paginated user directory with one-click user selection.
+  - `/user <id|@username>` — Detailed user dossier showing lifetime statistics, join timestamp, last seen, saved URLs, ban status, and role.
+  - `/ban <id|@username> [reason]` — Instantly bans user and aborts any active or queued checks.
+  - `/unban <id|@username>` — Restores user access.
+  - `/clearurls <id|@username>` — Wipes target URLs for a user.
+  - `/resetuser <id|@username>` — Resets check and proxy counters for a user.
+  - `/dm <id|@username> <message>` — Sends direct official notification from the bot to a specific user.
+- **Broadcast System (`/broadcast <message>` or via wizard)**:
+  - Broadcasts announcement to all registered users with smooth live progress updates and a comprehensive delivery report.
+- **Maintenance Mode (`/maintenance [on|off]`)**:
+  - Puts the bot in maintenance mode; non-admin users receive a polite maintenance screen while admins bypass it.
+- **System Telemetry & Database Management**:
+  - `/stats` — Real-time memory (RSS, heap), process uptime, Node runtime, queue status, and database size.
+  - `/backup` or `/exportdb` — Sends an instant snapshot of the SQLite database (`bot.db`) as a document directly to the owner.
+  - `/promote <id|@username>` & `/demote <id|@username>` — Owner-only commands to manage secondary admins.
 
 ## Requirements
 
@@ -72,6 +96,8 @@ All settings are optional except `BOT_TOKEN`:
 | Variable | Default | Purpose |
 |---|---:|---|
 | `BOT_TOKEN` | — | Token from @BotFather (required for Telegram polling) |
+| `OWNER_ID` | `7728424218` | Primary bot owner / super-admin Telegram ID |
+| `ADMIN_IDS` | — | Comma-separated secondary admin Telegram IDs |
 | `PORT` / `HEALTH_PORT` | `8080` | Health-check HTTP listen port |
 | `API_BASE_URL` | `https://api.telegram.org` | Bot API root, useful for a local Bot API server |
 | `DB_FILE` | `data/bot.db` | SQLite path |

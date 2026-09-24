@@ -122,6 +122,36 @@ export class JobStore {
     job.draftId = undefined;
   }
 
+  abortUserJobs(userId: number): number {
+    let count = 0;
+    for (const job of this.jobs.values()) {
+      if (job.userId === userId) {
+        if (job.abort && !job.abort.signal.aborted) {
+          job.abort.abort();
+          count += 1;
+        }
+        if (job.status === "queued" || job.status === "running") {
+          this.finish(job, "cancelled");
+        }
+      }
+    }
+    const filteredQueue = this.pendingQueue.filter((id) => {
+      const j = this.jobs.get(id);
+      return j ? j.userId !== userId : false;
+    });
+    this.pendingQueue.length = 0;
+    this.pendingQueue.push(...filteredQueue);
+    return count;
+  }
+
+  getMetrics(): { running: number; queued: number; total: number } {
+    return {
+      running: this.running.size,
+      queued: this.pendingQueue.length,
+      total: this.jobs.size,
+    };
+  }
+
   sweep(maxAgeMs = 30 * 60_000): void {
     const now = Date.now();
     for (const [id, job] of this.jobs) {
