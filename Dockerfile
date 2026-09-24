@@ -2,7 +2,9 @@
 FROM node:22-bookworm-slim AS build
 WORKDIR /app
 
-COPY package*.json ./
+# .npmrc sets ignore-scripts so better-sqlite3 13 uses its bundled prebuild
+# instead of node-gyp (bookworm-slim has no Python or compiler).
+COPY package*.json .npmrc ./
 RUN npm ci
 
 COPY tsconfig.json ./
@@ -14,7 +16,7 @@ FROM node:22-bookworm-slim AS runtime
 ENV NODE_ENV=production
 WORKDIR /app
 
-COPY package*.json ./
+COPY package*.json .npmrc ./
 RUN npm ci --omit=dev && npm cache clean --force
 COPY --from=build /app/dist ./dist
 COPY --from=build /app/assets ./assets
