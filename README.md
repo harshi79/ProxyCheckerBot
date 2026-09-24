@@ -36,6 +36,8 @@ npm run build
 npm start
 ```
 
+`npm ci` skips install scripts (see `.npmrc`). `better-sqlite3` 13 already ships N-API prebuilds, and a lockfile install otherwise tries to compile them with node-gyp. That compile needs Python and a C++ toolchain, which deploy images do not have.
+
 Development mode:
 
 ```bash
